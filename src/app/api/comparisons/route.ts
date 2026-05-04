@@ -30,6 +30,9 @@ export async function POST(req: NextRequest) {
   }
   if (files.length > 10) return NextResponse.json({ error: "max 10 Angebote" }, { status: 400 });
 
+  const aiProviderRaw = String(fd.get("aiProvider") || "claude");
+  const aiProvider = aiProviderRaw === "gemini" ? "gemini" : "claude";
+
   const comparison = await prisma.comparison.create({
     data: {
       userId: user.id,
@@ -38,6 +41,7 @@ export async function POST(req: NextRequest) {
       projectRef: String(fd.get("projectRef") || "") || null,
       backgroundInfo: String(fd.get("backgroundInfo") || "") || null,
       customPrompt: String(fd.get("customPrompt") || "") || null,
+      aiProvider,
       status: "DRAFT",
     },
   });

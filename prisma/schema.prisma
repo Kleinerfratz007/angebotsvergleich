@@ -42,13 +42,15 @@ model Comparison {
   customPrompt    String?          @map("custom_prompt") @db.Text  // User-Zusatzprompt
 
   status          ComparisonStatus @default(DRAFT)
+  // Konvention §15.2 (2026-05-04): Multi-Provider AI
+  aiProvider      String?          @map("ai_provider") @default("claude")  // claude | gemini
   resultSummary   String?          @map("result_summary") @db.Text  // KI-Kurzfazit
   resultJson      Json?            @map("result_json")               // Strukturierte KI-Antwort
   winnerOfferId   String?          @map("winner_offer_id")           // FK auf Offer
   errorMessage    String?          @map("error_message") @db.Text
 
-  // Claude API Audit
-  claudeModel     String?          @map("claude_model")
+  // AI Run Audit (Provider-agnostisch)
+  claudeModel     String?          @map("claude_model")  // historical name, holds provider+model
   claudeInputTokens   Int?         @map("claude_input_tokens")
   claudeOutputTokens  Int?         @map("claude_output_tokens")
   claudeRunMs     Int?             @map("claude_run_ms")

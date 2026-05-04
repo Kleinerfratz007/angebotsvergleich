@@ -23,6 +23,7 @@ export default function NewComparisonClient() {
   const [projectRef, setProjectRef] = useState("");
   const [backgroundInfo, setBackgroundInfo] = useState("");
   const [customPrompt, setCustomPrompt] = useState("");
+  const [aiProvider, setAiProvider] = useState<"claude" | "gemini">("claude");
   const [offers, setOffers] = useState<OfferDraft[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -57,6 +58,7 @@ export default function NewComparisonClient() {
       if (projectRef) fd.append("projectRef", projectRef);
       if (backgroundInfo) fd.append("backgroundInfo", backgroundInfo);
       if (customPrompt) fd.append("customPrompt", customPrompt);
+      fd.append("aiProvider", aiProvider);
       for (const o of offers) {
         fd.append("supplierName", o.supplierName);
         fd.append("file", o.file, o.file.name);
@@ -101,6 +103,30 @@ export default function NewComparisonClient() {
             <span className="text-xs opacity-70 block mb-1">Projekt-Nr (optional)</span>
             <input value={projectRef} onChange={(e) => setProjectRef(e.target.value)} className="input" placeholder="z.B. 12345" />
           </label>
+        </div>
+      </div>
+
+      <div className="card space-y-3">
+        <h2 className="font-semibold text-sm uppercase opacity-70">KI-Modell</h2>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() => setAiProvider("claude")}
+            className={`p-3 rounded-md border text-left text-sm transition ${aiProvider === "claude" ? "border-purple-500 bg-purple-50" : ""}`}
+            style={{ borderColor: aiProvider === "claude" ? undefined : "rgb(var(--border))" }}
+          >
+            <div className="font-semibold">🟣 Claude Opus 4.7</div>
+            <div className="text-xs opacity-70">Anthropic · Default · Production-ready</div>
+          </button>
+          <button
+            type="button"
+            onClick={() => setAiProvider("gemini")}
+            className={`p-3 rounded-md border text-left text-sm transition ${aiProvider === "gemini" ? "border-blue-500 bg-blue-50" : ""}`}
+            style={{ borderColor: aiProvider === "gemini" ? undefined : "rgb(var(--border))" }}
+          >
+            <div className="font-semibold">🔵 Gemini Pro 3.1</div>
+            <div className="text-xs opacity-70">Google · Vorbereitet · braucht GOOGLE_API_KEY</div>
+          </button>
         </div>
       </div>
 

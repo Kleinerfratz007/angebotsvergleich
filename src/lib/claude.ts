@@ -15,8 +15,10 @@
 import Anthropic from "@anthropic-ai/sdk";
 
 const API_KEY = process.env.ANTHROPIC_API_KEY || "";
-// Konvention: Best Model laut User = Opus 4.7 (Stand 2026-05). Fallback zu sonnet.
-const MODEL = process.env.ANTHROPIC_MODEL || "claude-opus-4-5";
+// Konvention: Best Model laut User-Anforderung = Opus 4.7 (Stand 2026-05).
+// Override per env ANTHROPIC_MODEL (z.B. claude-opus-4-5 fuer Cost-Saving,
+// oder claude-sonnet-4-5 fuer Speed).
+const MODEL = process.env.ANTHROPIC_MODEL || "claude-opus-4-7";
 
 export const isClaudeConfigured = (): boolean => Boolean(API_KEY);
 

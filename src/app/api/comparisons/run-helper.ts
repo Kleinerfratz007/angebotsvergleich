@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db";
-import { isClaudeConfigured, mockComparison, runClaudeComparison } from "@/lib/claude";
+import { type AiProvider, DEFAULT_PROVIDER, runAiComparison } from "@/lib/ai-provider";
 
-/** Konvention §15.1 (2026-05-04): Synchrone KI-Analyse mit Optimistic-Update auf Comparison. */
+/** Konvention §15.1+§15.2 (2026-05-04): Synchrone Multi-Provider KI-Analyse. */
 export async function runAnalysis(comparisonId: string): Promise<void> {
   // 1) Status PROCESSING
   await prisma.comparison.update({
@@ -23,15 +23,10 @@ export async function runAnalysis(comparisonId: string): Promise<void> {
       extractedText: o.extractedText || `[Kein extrahierter Text — Datei: ${o.originalFilename}]`,
     }));
 
-    let result, meta;
-    if (isClaudeConfigured()) {
-      const r = await runClaudeComparison(offerInputs, c.backgroundInfo || "", c.customPrompt || "");
-      result = r.result;
-      meta = r.meta;
-    } else {
-      result = mockComparison(offerInputs);
-      meta = { model: "mock", inputTokens: 0, outputTokens: 0, runMs: 0 };
-    }
+    const provider: AiProvider = (c.aiProvider as AiProvider) || DEFAULT_PROVIDER;
+    const aiResult = await runAiComparison(provider, offerInputs, c.backgroundInfo || "", c.customPrompt || "");
+    const result = aiResult.result;
+    const meta = { model: `${aiResult.meta.provider}:${aiResult.meta.model}`, inputTokens: aiResult.meta.inputTokens, outputTokens: aiResult.meta.outputTokens, runMs: aiResult.meta.runMs };
 
     // Map Ranking → Offer-Updates
     let winnerOfferId: string | null = null;
