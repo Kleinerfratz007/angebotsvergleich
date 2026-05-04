@@ -8,7 +8,11 @@ export const maxDuration = 180;
 
 /**
  * POST /api/comparisons/[id]/run
- * Triggert KI-Analyse synchron (UI zeigt Loading-State).
+ *
+ * Konvention §15.10 (2026-05-04): Fire-and-Forget Pattern.
+ * Setzt Status auf PROCESSING + startet runAnalysis im Hintergrund + returns 202.
+ * UI kann sofort die KI-Progress-Animation rendern; runAnalysis läuft 30-90s
+ * im Hintergrund und setzt am Ende DONE/ERROR.
  */
 export async function POST(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { user } = await getSession();
@@ -17,10 +21,17 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
   const c = await prisma.comparison.findUnique({ where: { id } });
   if (!c || c.userId !== user.id) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  try {
-    await runAnalysis(id);
-  } catch (e) {
-    return NextResponse.json({ error: (e as Error).message }, { status: 500 });
-  }
-  return NextResponse.json({ ok: true });
+  // PROCESSING SOFORT setzen damit Browser-Refresh die Animation zeigt
+  await prisma.comparison.update({
+    where: { id },
+    data: { status: "PROCESSING", errorMessage: null, updatedAt: new Date() },
+  });
+
+  // Fire-and-Forget: runAnalysis im Hintergrund (catch um unhandled rejection zu vermeiden)
+  runAnalysis(id).catch((e: Error) => {
+    console.error("[run-bg] failed for", id, e.message);
+  });
+
+  // Sofort 202 Accepted — UI rendert KiProgress-Animation
+  return NextResponse.json({ ok: true, accepted: true, status: "PROCESSING" }, { status: 202 });
 }

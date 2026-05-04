@@ -85,7 +85,6 @@ export const AI_MODELS: AiModel[] = [
       "Bei sehr komplexen Zusammenhängen schwächer als Opus",
     ],
     bestFor: "Standard-Angebotsvergleich, Bedarfsanmeldungen, Dokumenten-Scans",
-    recommended: true,
   },
   {
     id: "claude-opus-4-7",
@@ -109,11 +108,12 @@ export const AI_MODELS: AiModel[] = [
       "Overkill für einfache Extraktion",
     ],
     bestFor: "Komplexe Vergleiche mit vielen Angeboten, kritische Beschaffungs-Entscheidungen",
+    recommended: true,
   },
 ];
 
 /** Default-Empfehlung fuer neue Anfragen */
-export const DEFAULT_MODEL: AiModelId = "claude-sonnet-4-5";
+export const DEFAULT_MODEL: AiModelId = "claude-opus-4-7";
 
 export function getModel(id: string | null | undefined): AiModel {
   return AI_MODELS.find((m) => m.id === id || m.apiId === id) || AI_MODELS.find((m) => m.id === DEFAULT_MODEL)!;
