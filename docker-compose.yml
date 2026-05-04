@@ -34,6 +34,7 @@ services:
       UPLOAD_DIR: /app/uploads
       NOTIFICATIONS_API_URL: ${NOTIFICATIONS_API_URL:-http://host.docker.internal:3001}
       ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-claude-opus-4-5}
+      BEDARFSANMELDUNG_API_URL: ${BEDARFSANMELDUNG_API_URL:-https://id-engineering-portal.com}
     ports:
       - "127.0.0.1:4110:4110"
     volumes:

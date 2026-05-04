@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { Trophy, AlertTriangle, Filter, ChevronUp, ChevronDown, Power } from "lucide-react";
+import PushBedarfButton from "./push-bedarf-button";
 
 interface RankingItem {
   supplier: string;
@@ -52,7 +53,7 @@ const DEFAULT_DIMS: Record<Dim, DimState> = {
 
 const DIM_LABEL: Record<Dim, string> = { price: "Preis", delivery: "Lieferung", quality: "Qualität", service: "Service" };
 
-export default function RankingTable({ ranking }: { ranking: RankingItem[] }) {
+export default function RankingTable({ ranking, comparisonId, offerIdMap, defaultProjekt }: { ranking: RankingItem[]; comparisonId: string; offerIdMap: Record<string, string>; defaultProjekt?: string | null }) {
   const [dims, setDims] = useState<Record<Dim, DimState>>(DEFAULT_DIMS);
   const [filterCompliance, setFilterCompliance] = useState<{ iso9001: boolean; ce: boolean; madeInEU: boolean; noEol: boolean }>({ iso9001: false, ce: false, madeInEU: false, noEol: false });
   const [sortKey, setSortKey] = useState<SortKey>("rank");
@@ -259,6 +260,27 @@ export default function RankingTable({ ranking }: { ranking: RankingItem[] }) {
               )}
               {(r.riskFlags && r.riskFlags.length > 0) && (
                 <div className="mt-2 text-amber-700"><div className="font-semibold text-xs">⚠ Risiko-Flags</div><ul className="list-disc pl-4">{r.riskFlags.map((e, i) => <li key={i}>{e}</li>)}</ul></div>
+              )}
+              {offerIdMap[r.supplier.toLowerCase().trim()] && (
+                <div className="mt-3 pt-2 border-t flex items-center justify-between gap-2" style={{ borderColor: "rgb(var(--border))" }}>
+                  <span className="text-xs opacity-70">Lieferant fuer Bestellung waehlen:</span>
+                  <PushBedarfButton
+                    comparisonId={comparisonId}
+                    offerId={offerIdMap[r.supplier.toLowerCase().trim()]}
+                    supplierName={r.supplier}
+                    defaultProjekt={defaultProjekt}
+                    rankingMeta={{
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      artikelnummer: (r as any).bedarfArtikelnummer,
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      hersteller: (r as any).bedarfHersteller,
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      menge: (r as any).bedarfMenge,
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      einheit: (r as any).bedarfEinheit,
+                    }}
+                  />
+                </div>
               )}
             </details>
           ))}

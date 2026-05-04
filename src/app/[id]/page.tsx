@@ -119,7 +119,34 @@ export default async function ComparisonDetailPage({ params }: { params: Promise
           {/* 4) RANKING */}
           {result.ranking && (
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            <RankingTable ranking={result.ranking as any} />
+            <RankingTable
+              ranking={result.ranking as any}
+              comparisonId={c.id}
+              defaultProjekt={c.projectRef}
+              offerIdMap={(() => {
+                const map: Record<string, string> = {};
+                // Direkt: supplierName -> offerId
+                for (const o of c.offers) map[o.supplierName.toLowerCase().trim()] = o.id;
+                // Plus: ranking-supplier substring-match
+                if (result?.ranking) {
+                  for (const r of result.ranking) {
+                    const want = (r as { supplier: string }).supplier.toLowerCase().trim();
+                    if (map[want]) continue;
+                    const m = c.offers.find(o => {
+                      const have = o.supplierName.toLowerCase().trim();
+                      return have.includes(want) || want.includes(have);
+                    });
+                    if (m) map[want] = m.id;
+                  }
+                  // Position-Fallback: ranking[0] -> offers[0] etc.
+                  result.ranking.forEach((r, i) => {
+                    const want = (r as { supplier: string }).supplier.toLowerCase().trim();
+                    if (!map[want] && c.offers[i]) map[want] = c.offers[i].id;
+                  });
+                }
+                return map;
+              })()}
+            />
           )}
 
           {/* 4a) Sieger-Zusammenfassung (gelbe Card) */}

@@ -99,6 +99,20 @@ export interface RankingItem {
   scoreCompliance?: number | null;
   scoreRisk?: number | null;
   scoreCoverage?: number | null;
+
+  // ---- Bedarfsanmeldung-Felder (Cross-App-Push, Konvention §15.11 — 2026-05-04) ----
+  /** Artikelnummer / Hersteller-PN aus dem Angebot */
+  bedarfArtikelnummer?: string | null;
+  /** Hersteller-Name */
+  bedarfHersteller?: string | null;
+  /** Technische Spezifikation kompakt (1-2 Zeilen) */
+  bedarfSpezifikation?: string | null;
+  /** Einheit: Stk, kg, m, l, Stunden, Paar, Liter, ... */
+  bedarfEinheit?: string | null;
+  /** Beschreibung kurz fuer Bedarfsanmeldungs-Listenansicht (max 100 chars) */
+  bedarfBeschreibung?: string | null;
+  /** Vorgeschlagene Menge (numerisch) */
+  bedarfMenge?: number | null;
 }
 
 export interface NormalizedPosition {
@@ -159,6 +173,16 @@ Du analysierst 2-10 Angebote unterschiedlicher Lieferanten und erstellst einen f
 6. **Inkoterms**: EXW = Kunde traegt Versand + Risiko. DDP = Lieferant alles inkl Zoll. Wichtig fuer fairen Vergleich.
 
 # Erweiterte Metriken (zusaetzlich zu den 4 Score-Kriterien) — IMMER pruefen:
+
+## H. Bedarfsanmeldung-Felder (fuer Cross-App-Bestellung)
+
+Pro Lieferant extrahiere zusaetzlich (wenn ableitbar) — wird beim Push in die Bedarfsanmeldung-App gebraucht:
+- bedarfArtikelnummer: Hersteller-Artikelnummer / Bestell-Nr
+- bedarfHersteller: Hersteller-Firmenname (kann == supplier sein wenn Hersteller selbst anbietet)
+- bedarfSpezifikation: 1-2 Zeilen kompakte Tech-Specs (Material, Abmessung, Funktion)
+- bedarfEinheit: Stk / kg / m / l / Stunden / Paar
+- bedarfBeschreibung: kurze Bezeichnung fuer Bestellliste (max 100 chars)
+- bedarfMenge: angebotene Menge als Zahl
 
 ## A. Vollstaendigkeit & Mengenabgleich
 - Sind alle angefragten Positionen enthalten? -> coveragePct (0-100)

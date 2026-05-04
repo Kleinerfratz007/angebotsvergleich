@@ -121,7 +121,7 @@ export default function KostenClient({ isAdmin, userName: _userName }: { isAdmin
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-3 flex-wrap">
-        <h1 className="text-2xl font-bold flex items-center gap-2"><Coins size={22} /> KI-Kosten</h1>
+        <h1 className="text-2xl font-bold flex items-center gap-2"><Coins size={22} /> Total API AI-Costs</h1>
         <button onClick={load} disabled={loading} className="btn btn-ghost ml-auto" title="Neu laden"><RefreshCw size={14} className={loading ? "animate-spin" : ""} /></button>
         <button onClick={exportCsv} className="btn btn-ghost"><Download size={14} /> CSV</button>
       </div>

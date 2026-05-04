@@ -20,7 +20,7 @@ const DICT: Record<string, Record<Locale, string>> = {
   "nav.portal": { de: "Zurueck zum Portal", en: "Back to portal" },
   "nav.comparisons": { de: "Meine Vergleiche", en: "My comparisons" },
   "nav.new": { de: "Neuer Vergleich", en: "New comparison" },
-  "nav.costs": { de: "Kosten", en: "Costs" },
+  "nav.costs": { de: "Total API AI-Costs", en: "Total API AI-Costs" },
   "nav.archive": { de: "Archiv", en: "Archive" },
   "nav.notifications": { de: "Benachrichtigungen", en: "Notifications" },
   "nav.export": { de: "Daten-Export", en: "Data export" },
