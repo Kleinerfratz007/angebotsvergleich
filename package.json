@@ -1,6 +1,6 @@
 {
   "name": "angebotsvergleich",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "scripts": {
     "dev": "next dev -p 4110",
@@ -13,6 +13,7 @@
     "@anthropic-ai/sdk": "^0.32.1",
     "@google/generative-ai": "^0.21.0",
     "@prisma/client": "^6.19.3",
+    "@react-pdf/renderer": "^4.5.1",
     "lucide-react": "^0.469.0",
     "next": "15.5.15",
     "openid-client": "^6.6.4",

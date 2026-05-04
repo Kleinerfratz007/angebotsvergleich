@@ -23,6 +23,21 @@ model User {
   @@map("users")
 }
 
+/**
+ * Konvention §17 (2026-05-04): App-Settings (z.B. API-Keys) verschluesselt
+ * in DB. AES-256-GCM mit APP_ENCRYPTION_KEY (in /root/.id-portal-secrets.env).
+ * Nur Admins koennen lesen/schreiben.
+ */
+model AppSetting {
+  key             String    @id  // z.B. ANTHROPIC_API_KEY
+  valueEncrypted  String    @map("value_encrypted")  // hex(iv):hex(authTag):hex(ciphertext)
+  updatedById     String    @map("updated_by_id")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  @@map("app_settings")
+}
+
 enum ComparisonStatus {
   DRAFT       // User legt an, fuegt Angebote hinzu
   PROCESSING  // Claude laeuft
@@ -49,13 +64,15 @@ model Comparison {
   winnerOfferId   String?          @map("winner_offer_id")           // FK auf Offer
   errorMessage    String?          @map("error_message") @db.Text
 
-  // AI Run Audit (Provider-agnostisch)
+  // AI Run Audit (Provider-agnostisch, Snapshot des LETZTEN Runs)
   claudeModel     String?          @map("claude_model")  // historical name, holds provider+model
   claudeInputTokens   Int?         @map("claude_input_tokens")
   claudeOutputTokens  Int?         @map("claude_output_tokens")
   claudeRunMs     Int?             @map("claude_run_ms")
 
   offers          Offer[]
+  followups       ComparisonFollowup[]
+  usage           AiUsage[]
   version         Int              @default(0)
   createdAt       DateTime         @default(now()) @map("created_at")
   updatedAt       DateTime         @updatedAt @map("updated_at")
@@ -130,4 +147,81 @@ model OfferPosition {
 
   @@map("offer_positions")
   @@index([offerId])
+}
+
+/**
+ * Konvention §15.3 (2026-05-04): Cost-Tracking pro KI-Call.
+ * Append-only Tabelle (kein Update, kein Delete) — Audit-Trail wer
+ * wann wieviel Geld bei welchem Provider/Modell verbraucht hat.
+ *
+ * USD = primaere Quelle (Provider-Preise sind in USD), EUR = Konvertierung
+ * mit Wechselkurs-Snapshot zum Zeitpunkt des Calls (Konstante derzeit, spaeter
+ * via API).
+ */
+model AiUsage {
+  id                String    @id @default(cuid())
+  userId            String    @map("user_id")
+  userName          String    @map("user_name")           // Snapshot zum Zeitpunkt — falls User spaeter umbenannt wird
+  userEmail         String    @map("user_email")          // Audit-Trail
+
+  comparisonId      String?   @map("comparison_id")
+  comparison        Comparison? @relation(fields: [comparisonId], references: [id], onDelete: SetNull)
+  followupId        String?   @map("followup_id")          // FK ComparisonFollowup (optional)
+
+  provider          String    // claude | gemini
+  model             String    // z.B. claude-opus-4-7
+  kind              String    // comparison | followup | settings-test
+
+  inputTokens       Int       @default(0) @map("input_tokens")
+  outputTokens      Int       @default(0) @map("output_tokens")
+  cacheReadTokens   Int       @default(0) @map("cache_read_tokens")
+  cacheCreateTokens Int       @default(0) @map("cache_create_tokens")
+
+  costUsd           Decimal   @db.Decimal(12, 6) @map("cost_usd")  // 6 Nachkommastellen fuer Sub-Cent
+  costEur           Decimal   @db.Decimal(12, 6) @map("cost_eur")
+  fxUsdEur          Decimal   @db.Decimal(8, 6) @map("fx_usd_eur") // Wechselkurs-Snapshot (z.B. 0.92)
+
+  runMs             Int       @default(0) @map("run_ms")
+  errorMessage      String?   @map("error_message") @db.Text
+
+  createdAt         DateTime  @default(now()) @map("created_at")
+
+  @@map("ai_usage")
+  @@index([userId, createdAt])
+  @@index([createdAt])
+  @@index([comparisonId])
+}
+
+/**
+ * Konvention §15.4 (2026-05-04): Followup-Chat zu einem Vergleich.
+ * Nach dem initialen Run kann der User mit weiteren Prompts das Ergebnis
+ * verfeinern. Jeder Followup ist ein eigener KI-Call (eigene Kosten in AiUsage).
+ *
+ * resultJson hier OPTIONAL: wenn KI ein neues vollstaendiges Ergebnis liefert,
+ * wird es in Comparison.resultJson uebernommen UND hier archiviert.
+ */
+model ComparisonFollowup {
+  id              String     @id @default(cuid())
+  comparisonId    String     @map("comparison_id")
+  comparison      Comparison @relation(fields: [comparisonId], references: [id], onDelete: Cascade)
+  userId          String     @map("user_id")
+  userName        String     @map("user_name")
+
+  prompt          String     @db.Text  // Was der User gefragt hat
+  response        String     @db.Text  // KI-Antwort als Markdown/Text (sichtbar im Chat)
+  resultJson      Json?      @map("result_json")  // Optional: vollstaendiges aktualisiertes Ergebnis
+
+  provider        String
+  model           String
+  inputTokens     Int        @default(0) @map("input_tokens")
+  outputTokens    Int        @default(0) @map("output_tokens")
+  costUsd         Decimal    @db.Decimal(12, 6) @map("cost_usd")
+  costEur         Decimal    @db.Decimal(12, 6) @map("cost_eur")
+  runMs           Int        @default(0) @map("run_ms")
+  errorMessage    String?    @map("error_message") @db.Text
+
+  createdAt       DateTime   @default(now()) @map("created_at")
+
+  @@map("comparison_followups")
+  @@index([comparisonId, createdAt])
 }

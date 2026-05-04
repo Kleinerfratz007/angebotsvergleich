@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Link from "next/link";
-import { LayoutDashboard, FilePlus, Bell } from "lucide-react";
+import { LayoutDashboard, FilePlus, Bell, Settings, Coins } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Angebotsvergleich · ID Engineering",
@@ -18,17 +18,25 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <div className="font-bold text-base">Angebotsvergleich</div>
               <div className="text-xs opacity-70">KI-gestuetzt mit Claude</div>
             </div>
-            <Link href="/portal/" className="px-3 py-2 rounded-md text-sm hover:bg-white/10 flex items-center gap-2 opacity-70">
+            {/* External Link — Next.js basePath-aware <Link> haengt /angebotsvergleich davor.
+                Wir wollen aber das echte Portal-Root, nicht /angebotsvergleich/portal. */}
+            <a href="/portal/" className="px-3 py-2 rounded-md text-sm hover:bg-white/10 flex items-center gap-2 opacity-70">
               ← Zum Portal
-            </Link>
+            </a>
             <Link href="/" className="px-3 py-2 rounded-md text-sm hover:bg-white/10 flex items-center gap-2">
               <LayoutDashboard size={16} /> Meine Vergleiche
             </Link>
             <Link href="/neu" className="px-3 py-2 rounded-md text-sm hover:bg-white/10 flex items-center gap-2">
               <FilePlus size={16} /> Neuer Vergleich
             </Link>
+            <Link href="/kosten" className="px-3 py-2 rounded-md text-sm hover:bg-white/10 flex items-center gap-2">
+              <Coins size={16} /> Kosten
+            </Link>
             <Link href="/benachrichtigungen" className="px-3 py-2 rounded-md text-sm hover:bg-white/10 flex items-center gap-2">
               <Bell size={16} /> Benachrichtigungen
+            </Link>
+            <Link href="/einstellungen" className="px-3 py-2 rounded-md text-sm hover:bg-white/10 flex items-center gap-2 mt-auto">
+              <Settings size={16} /> Einstellungen
             </Link>
           </aside>
           <main className="flex-1 p-4 md:p-6 max-w-6xl mx-auto w-full">{children}</main>

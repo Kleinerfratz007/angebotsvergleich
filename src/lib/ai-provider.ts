@@ -5,7 +5,7 @@
  *  - claude (Anthropic Claude Opus 4.7) — Default, Production-ready
  *  - gemini (Google Gemini Pro 3.1) — Vorbereitet, braucht GOOGLE_API_KEY
  *
- * Auswahl pro Comparison via field `aiProvider` ODER global per env
+ * Auswahl pro Comparison via field 'aiProvider' ODER global per env
  * AI_PROVIDER_DEFAULT (default: claude).
  *
  * Beide Provider returnen die GLEICHE Result-Struktur (ClaudeComparisonResult)
@@ -27,17 +27,17 @@ export const DEFAULT_PROVIDER: AiProvider =
 
 export interface AiRunResult {
   result: ClaudeComparisonResult;
-  meta: { provider: AiProvider; model: string; inputTokens: number; outputTokens: number; runMs: number };
+  meta: { provider: AiProvider; model: string; inputTokens: number; outputTokens: number; cacheReadTokens?: number; cacheCreateTokens?: number; runMs: number };
 }
 
-export function isProviderConfigured(provider: AiProvider): boolean {
+export async function isProviderConfigured(provider: AiProvider): Promise<boolean> {
   if (provider === "gemini") return isGeminiConfigured();
-  return isClaudeConfigured();
+  return await isClaudeConfigured();
 }
 
-export function configuredProviders(): AiProvider[] {
+export async function configuredProviders(): Promise<AiProvider[]> {
   const list: AiProvider[] = [];
-  if (isClaudeConfigured()) list.push("claude");
+  if (await isClaudeConfigured()) list.push("claude");
   if (isGeminiConfigured()) list.push("gemini");
   return list;
 }
@@ -60,7 +60,7 @@ export async function runAiComparison(
     return { result: r.result, meta: { provider, ...r.meta } };
   }
   // Default: claude
-  if (!isClaudeConfigured()) {
+  if (!(await isClaudeConfigured())) {
     return {
       result: mockComparison(offers),
       meta: { provider, model: "mock-claude", inputTokens: 0, outputTokens: 0, runMs: 0 },

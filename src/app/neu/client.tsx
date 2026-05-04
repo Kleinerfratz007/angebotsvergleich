@@ -16,7 +16,7 @@ const PROMPT_HINTS = [
   "z.B. \"Mengen-Varianz +/-15% ist akzeptabel — bevorzuge flexibel staffelbare Angebote\"",
 ];
 
-export default function NewComparisonClient() {
+export default function NewComparisonClient({ geminiAvailable }: { geminiAvailable: boolean }) {
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [customerName, setCustomerName] = useState("");
@@ -106,28 +106,42 @@ export default function NewComparisonClient() {
         </div>
       </div>
 
+      {/* KI-Modell — Gemini nur wenn Key gesetzt */}
       <div className="card space-y-3">
         <h2 className="font-semibold text-sm uppercase opacity-70">KI-Modell</h2>
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            onClick={() => setAiProvider("claude")}
-            className={`p-3 rounded-md border text-left text-sm transition ${aiProvider === "claude" ? "border-purple-500 bg-purple-50" : ""}`}
-            style={{ borderColor: aiProvider === "claude" ? undefined : "rgb(var(--border))" }}
-          >
-            <div className="font-semibold">🟣 Claude Opus 4.7</div>
-            <div className="text-xs opacity-70">Anthropic · Default · Production-ready</div>
-          </button>
-          <button
-            type="button"
-            onClick={() => setAiProvider("gemini")}
-            className={`p-3 rounded-md border text-left text-sm transition ${aiProvider === "gemini" ? "border-blue-500 bg-blue-50" : ""}`}
-            style={{ borderColor: aiProvider === "gemini" ? undefined : "rgb(var(--border))" }}
-          >
-            <div className="font-semibold">🔵 Gemini Pro 3.1</div>
-            <div className="text-xs opacity-70">Google · Vorbereitet · braucht GOOGLE_API_KEY</div>
-          </button>
-        </div>
+        {geminiAvailable ? (
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setAiProvider("claude")}
+              className={`p-3 rounded-md border text-left text-sm transition ${aiProvider === "claude" ? "border-purple-500 bg-purple-50" : ""}`}
+              style={{ borderColor: aiProvider === "claude" ? undefined : "rgb(var(--border))" }}
+            >
+              <div className="font-semibold">🟣 Claude Opus 4.7</div>
+              <div className="text-xs opacity-70">Anthropic · Default</div>
+            </button>
+            <button
+              type="button"
+              onClick={() => setAiProvider("gemini")}
+              className={`p-3 rounded-md border text-left text-sm transition ${aiProvider === "gemini" ? "border-blue-500 bg-blue-50" : ""}`}
+              style={{ borderColor: aiProvider === "gemini" ? undefined : "rgb(var(--border))" }}
+            >
+              <div className="font-semibold">🔵 Gemini Pro 3.1</div>
+              <div className="text-xs opacity-70">Google</div>
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-2">
+            <div className="p-3 rounded-md border border-purple-500 bg-purple-50 text-sm">
+              <div className="font-semibold">🟣 Claude Opus 4.7</div>
+              <div className="text-xs opacity-70">Anthropic · Production-ready</div>
+            </div>
+            <div className="p-3 rounded-md border text-sm opacity-50" style={{ borderColor: "rgb(var(--border))", background: "rgb(248 250 252)" }}>
+              <div className="font-semibold" style={{ textDecoration: "line-through" }}>🔵 Gemini Pro 3.1</div>
+              <div className="text-xs opacity-70">Wird aktiv sobald GOOGLE_API_KEY in Einstellungen gesetzt ist.</div>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="card space-y-3">
