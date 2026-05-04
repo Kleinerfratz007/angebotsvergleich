@@ -27,6 +27,7 @@ export default function NewComparisonClient({ geminiAvailable }: { geminiAvailab
   const [backgroundInfo, setBackgroundInfo] = useState("");
   const [customPrompt, setCustomPrompt] = useState("");
   const [aiProvider, setAiProvider] = useState<"claude" | "gemini">("claude");
+  const [rfqEnabled, setRfqEnabled] = useState(false);
   const [rfqData, setRfqData] = useState<RfqData | null>(null);
   const [aiModel, setAiModel] = useState<AiModelId>(DEFAULT_MODEL);
   const [offers, setOffers] = useState<OfferDraft[]>([]);
@@ -103,7 +104,38 @@ export default function NewComparisonClient({ geminiAvailable }: { geminiAvailab
         </div>
       )}
 
-      <RfqStep value={rfqData} onChange={setRfqData} />
+      {/* Step 0 RFQ — default off, per Toggle aktivierbar (Konvention §15.6) */}
+      {rfqEnabled ? (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-xs opacity-70 px-1">
+            <span>Step 0 ist aktiviert — Anfrage-PDF unten hochladen</span>
+            <button
+              type="button"
+              onClick={() => { setRfqEnabled(false); setRfqData(null); }}
+              className="text-xs underline hover:text-purple-700"
+            >
+              Schritt entfernen
+            </button>
+          </div>
+          <RfqStep value={rfqData} onChange={setRfqData} />
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setRfqEnabled(true)}
+          className="card w-full text-left flex items-center justify-between gap-3 hover:border-purple-400 transition"
+          style={{ background: "rgb(248 250 252)", border: "1px dashed rgb(var(--border))" }}
+        >
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">💡</span>
+            <div>
+              <div className="text-sm font-medium">Step 0 · Anfrage hochladen <span className="badge ml-2" style={{ background: "rgb(229 231 235)" }}>optional</span></div>
+              <div className="text-xs opacity-70 mt-0.5">Aktivieren: KI extrahiert Scope der eigenen RFQ und nutzt sie als Benchmark beim Vergleich</div>
+            </div>
+          </div>
+          <span className="text-xs text-purple-700 font-semibold whitespace-nowrap">+ Aktivieren</span>
+        </button>
+      )}
 
       <div className="card space-y-3">
         <h2 className="font-semibold text-sm uppercase opacity-70">Stammdaten</h2>
