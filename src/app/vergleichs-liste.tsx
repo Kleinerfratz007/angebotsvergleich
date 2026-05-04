@@ -91,7 +91,7 @@ export default function VergleichsListe({ items, mode }: Props) {
                 <div className="text-xs opacity-60 mt-1 flex flex-wrap gap-2">
                   {c.customerName && <span>{c.customerName}</span>}
                   <span>· {c.offerCount} Angebote</span>
-                  <span>· {new Date(c.createdAt).toLocaleDateString("de-DE")}</span>
+                  <span>· {new Date(c.createdAt).toLocaleString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
                   {c.archivedAt && <span className="badge" style={{ background: "rgb(229 231 235)", color: "rgb(75 85 99)" }}><Archive size={10} className="inline" /> archiviert {new Date(c.archivedAt).toLocaleDateString("de-DE")}</span>}
                 </div>
                 {c.resultSummary && (
