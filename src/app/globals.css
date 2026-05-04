@@ -18,9 +18,10 @@
   --warning: 234 88 12;
 }
 
+/* Auto-Dark wenn System dunkel UND keine explizite User-Wahl */
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: 17 24 39;
+  :root:not([data-theme="light"]) {
+  --background: 17 24 39;
     --foreground: 248 250 252;
     --card: 30 41 59;
     --card-foreground: 248 250 252;
@@ -32,6 +33,21 @@
     --accent: 51 65 85;
     --accent-foreground: 248 250 252;
   }
+}
+
+/* User-Override: explizit Dark */
+:root[data-theme="dark"] {
+  --background: 17 24 39;
+    --foreground: 248 250 252;
+    --card: 30 41 59;
+    --card-foreground: 248 250 252;
+    --primary: 167 139 250;
+    --primary-foreground: 17 24 39;
+    --muted: 30 41 59;
+    --muted-foreground: 148 163 184;
+    --border: 51 65 85;
+    --accent: 51 65 85;
+    --accent-foreground: 248 250 252;
 }
 
 body {

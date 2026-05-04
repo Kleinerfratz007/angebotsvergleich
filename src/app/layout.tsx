@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Link from "next/link";
+import ThemeToggle from "./theme-toggle";
 import { LayoutDashboard, FilePlus, Bell, Settings, Coins, Archive, Download } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -14,9 +15,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <div className="min-h-screen flex">
           <aside className="w-56 border-r p-3 hidden md:flex md:flex-col gap-1" style={{ borderColor: "rgb(var(--border))", background: "rgb(var(--muted))" }}>
-            <div className="px-2 py-3 mb-2">
-              <div className="font-bold text-base">Angebotsvergleich</div>
-              <div className="text-xs opacity-70">KI-gestuetzt mit Claude</div>
+            <div className="px-2 py-3 mb-2 flex items-start justify-between gap-2">
+              <div>
+                <div className="font-bold text-base">Angebotsvergleich</div>
+                <div className="text-xs opacity-70">KI-gestuetzt mit Claude</div>
+              </div>
+              <ThemeToggle />
             </div>
             {/* External Link — Next.js basePath-aware <Link> haengt /angebotsvergleich davor.
                 Wir wollen aber das echte Portal-Root, nicht /angebotsvergleich/portal. */}

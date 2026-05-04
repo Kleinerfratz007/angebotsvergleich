@@ -101,7 +101,28 @@ export default async function ComparisonDetailPage({ params }: { params: Promise
 
       {result && c.status === "DONE" && (
         <>
-          {/* 1) WINNER */}
+          {/* 3a) WARNUNG: nicht alle Angebote im Ranking */}
+          {missingFromRanking && (
+            <div className="card text-amber-800" style={{ background: "rgb(254 243 199)", borderColor: "rgb(252 211 77)" }}>
+              <div className="flex items-start gap-2">
+                <AlertTriangle size={18} className="shrink-0 mt-0.5" />
+                <div className="text-sm">
+                  <div className="font-semibold">Nur {rankingCount} von {offerCount} Angeboten im Ranking.</div>
+                  <p className="text-xs mt-1">
+                    Ein aelterer Run hat ein PDF moeglicherweise als Anfrage statt Angebot eingestuft. Klicke <strong>"Erneut analysieren"</strong> — ab v0.2 werden ALLE Angebote zwingend ins Ranking aufgenommen.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 4) RANKING */}
+          {result.ranking && (
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            <RankingTable ranking={result.ranking as any} />
+          )}
+
+          {/* 4a) Sieger-Zusammenfassung (gelbe Card) */}
           {result.ranking && result.ranking[0] && (
             <div className="card border-yellow-300" style={{ background: "linear-gradient(135deg, rgb(254 249 195) 0%, rgb(255 255 255) 100%)" }}>
               <div className="flex items-start gap-3">
@@ -124,6 +145,8 @@ export default async function ComparisonDetailPage({ params }: { params: Promise
               </div>
             </div>
           )}
+
+
 
           {/* 2) FOLLOWUP — direkt unter Sieger, prominent */}
           <FollowupChat
@@ -151,27 +174,6 @@ export default async function ComparisonDetailPage({ params }: { params: Promise
               </div>
               <RunButton comparisonId={c.id} label="Erneut analysieren" />
             </div>
-          )}
-
-          {/* 3a) WARNUNG: nicht alle Angebote im Ranking */}
-          {missingFromRanking && (
-            <div className="card text-amber-800" style={{ background: "rgb(254 243 199)", borderColor: "rgb(252 211 77)" }}>
-              <div className="flex items-start gap-2">
-                <AlertTriangle size={18} className="shrink-0 mt-0.5" />
-                <div className="text-sm">
-                  <div className="font-semibold">Nur {rankingCount} von {offerCount} Angeboten im Ranking.</div>
-                  <p className="text-xs mt-1">
-                    Ein aelterer Run hat ein PDF moeglicherweise als Anfrage statt Angebot eingestuft. Klicke <strong>"Erneut analysieren"</strong> — ab v0.2 werden ALLE Angebote zwingend ins Ranking aufgenommen.
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* 4) RANKING */}
-          {result.ranking && (
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            <RankingTable ranking={result.ranking as any} />
           )}
 
           {/* 5) INSIGHTS gruppiert (mit RichText) */}
