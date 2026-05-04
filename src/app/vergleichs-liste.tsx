@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Trophy, Sparkles, AlertCircle, Archive, ArchiveRestore, Trash2, FileText } from "lucide-react";
+import { RichText } from "@/lib/rich-text";
 
 export interface VergleichItem {
   id: string;
@@ -94,7 +95,7 @@ export default function VergleichsListe({ items, mode }: Props) {
                   {c.archivedAt && <span className="badge" style={{ background: "rgb(229 231 235)", color: "rgb(75 85 99)" }}><Archive size={10} className="inline" /> archiviert {new Date(c.archivedAt).toLocaleDateString("de-DE")}</span>}
                 </div>
                 {c.resultSummary && (
-                  <p className="text-sm mt-2 opacity-80 line-clamp-2">{c.resultSummary}</p>
+                  <p className="text-sm mt-2 opacity-80 line-clamp-2"><RichText text={c.resultSummary} /></p>
                 )}
               </Link>
               <div className="flex flex-col items-end gap-2">

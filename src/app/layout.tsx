@@ -21,7 +21,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             {/* External Link — Next.js basePath-aware <Link> haengt /angebotsvergleich davor.
                 Wir wollen aber das echte Portal-Root, nicht /angebotsvergleich/portal. */}
             <a href="/portal/" className="px-3 py-2 rounded-md text-sm hover:bg-white/10 flex items-center gap-2 opacity-70">
-              ← Zum Portal
+              ← Zurueck zum Portal
             </a>
             <Link href="/" className="px-3 py-2 rounded-md text-sm hover:bg-white/10 flex items-center gap-2">
               <LayoutDashboard size={16} /> Meine Vergleiche
