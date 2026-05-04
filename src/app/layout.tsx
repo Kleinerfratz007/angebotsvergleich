@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Link from "next/link";
-import { LayoutDashboard, FilePlus, Bell, Settings, Coins } from "lucide-react";
+import { LayoutDashboard, FilePlus, Bell, Settings, Coins, Archive, Download } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Angebotsvergleich · ID Engineering",
@@ -32,10 +32,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Link href="/kosten" className="px-3 py-2 rounded-md text-sm hover:bg-white/10 flex items-center gap-2">
               <Coins size={16} /> Kosten
             </Link>
+            <Link href="/archiv" className="px-3 py-2 rounded-md text-sm hover:bg-white/10 flex items-center gap-2">
+              <Archive size={16} /> Archiv
+            </Link>
             <Link href="/benachrichtigungen" className="px-3 py-2 rounded-md text-sm hover:bg-white/10 flex items-center gap-2">
               <Bell size={16} /> Benachrichtigungen
             </Link>
-            <Link href="/einstellungen" className="px-3 py-2 rounded-md text-sm hover:bg-white/10 flex items-center gap-2 mt-auto">
+            <Link href="/admin/export" className="px-3 py-2 rounded-md text-sm hover:bg-white/10 flex items-center gap-2 opacity-60 mt-auto" title="Admin: Daten-Export">
+              <Download size={16} /> Daten-Export
+            </Link>
+            <Link href="/einstellungen" className="px-3 py-2 rounded-md text-sm hover:bg-white/10 flex items-center gap-2">
               <Settings size={16} /> Einstellungen
             </Link>
           </aside>

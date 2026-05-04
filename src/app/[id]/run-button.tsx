@@ -13,10 +13,29 @@ export default function RunButton({ comparisonId, label }: { comparisonId: strin
     setBusy(true);
     setError(null);
     try {
-      const res = await fetch(`/angebotsvergleich/api/comparisons/${comparisonId}/run`, { method: "POST" });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setError(data.error || `HTTP ${res.status}`);
+      const res = await fetch(`/angebotsvergleich/api/comparisons/${comparisonId}/run`, { method: "POST", redirect: "manual" });
+      // Session abgelaufen — nginx hat zu Authentik-Login redirected.
+      // Bei `redirect: "manual"` ist `type === "opaqueredirect"` und status=0.
+      if (res.type === "opaqueredirect" || res.status === 0) {
+        setError("Sitzung abgelaufen. Seite wird neu geladen…");
+        setTimeout(() => window.location.reload(), 800);
+        return;
+      }
+      const ctype = res.headers.get("content-type") || "";
+      if (!res.ok || !ctype.includes("application/json")) {
+        const text = await res.text();
+        // HTML statt JSON = forward-auth Redirect-Response
+        if (text.startsWith("<") || ctype.includes("text/html")) {
+          setError("Sitzung abgelaufen. Seite wird neu geladen…");
+          setTimeout(() => window.location.reload(), 800);
+          return;
+        }
+        try {
+          const data = JSON.parse(text);
+          setError(data.error || `HTTP ${res.status}`);
+        } catch {
+          setError(`HTTP ${res.status}`);
+        }
         return;
       }
       router.refresh();

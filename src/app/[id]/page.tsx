@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowLeft, Sparkles, FileText, Trophy, AlertCircle, RotateCw, Coins, FileDown, AlertTriangle } from "lucide-react";
 import RunButton from "./run-button";
 import RankingTable from "./ranking-table";
+import KiProgress from "./ki-progress";
 import FollowupChat from "./followup-chat";
 import { computeCost, formatEur } from "@/lib/pricing";
 import { RichText, RichBullets } from "@/lib/rich-text";
@@ -73,12 +74,7 @@ export default async function ComparisonDetailPage({ params }: { params: Promise
       </div>
 
       {c.status === "PROCESSING" && (
-        <div className="card text-center py-8" style={{ background: "rgb(219 234 254)" }}>
-          <Sparkles size={28} className="mx-auto mb-2 animate-pulse text-blue-600" />
-          <p className="font-medium">Claude Opus laeuft…</p>
-          <p className="text-xs opacity-70 mt-1">Das kann 20-90 Sekunden dauern bei {offerCount} Angeboten.</p>
-          <a href={`/${c.id}`} className="btn btn-ghost mt-3 inline-flex"><RotateCw size={14} /> Status aktualisieren</a>
-        </div>
+        <KiProgress offerCount={offerCount} comparisonId={c.id} />
       )}
 
       {c.status === "ERROR" && c.errorMessage && (

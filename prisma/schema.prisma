@@ -87,6 +87,9 @@ model Comparison {
   rfqInputTokens      Int?     @map("rfq_input_tokens")
   rfqOutputTokens     Int?     @map("rfq_output_tokens")
 
+  // Archiv-Status (Konvention §15.8 — 2026-05-04)
+  archivedAt          DateTime? @map("archived_at")
+
   createdAt       DateTime         @default(now()) @map("created_at")
   updatedAt       DateTime         @updatedAt @map("updated_at")
 
