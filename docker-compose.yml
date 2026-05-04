@@ -1,0 +1,49 @@
+# Konvention §15 (2026-05-04): Containerized + eigene DB
+services:
+  angebotsvergleich-db:
+    image: postgres:16-alpine
+    container_name: angebotsvergleich-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: angebotsvergleich
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD not set}
+      POSTGRES_DB: angebotsvergleich
+    volumes:
+      - /data/postgres/angebotsvergleich:/var/lib/postgresql/data
+    networks:
+      - angebotsvergleich-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U angebotsvergleich"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  angebotsvergleich-app:
+    build: .
+    container_name: angebotsvergleich-app
+    restart: unless-stopped
+    # Konvention §17.1 (2026-05-04): Shared-Secrets als ENV
+    env_file:
+      - /root/.id-portal-secrets.env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      DATABASE_URL: postgresql://angebotsvergleich:${DB_PASSWORD}@angebotsvergleich-db:5432/angebotsvergleich
+      NODE_ENV: production
+      PORT: 4110
+      UPLOAD_DIR: /app/uploads
+      NOTIFICATIONS_API_URL: ${NOTIFICATIONS_API_URL:-http://host.docker.internal:3001}
+      ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-claude-opus-4-5}
+    ports:
+      - "127.0.0.1:4110:4110"
+    volumes:
+      - /data/app-uploads/angebotsvergleich:/app/uploads
+    depends_on:
+      angebotsvergleich-db:
+        condition: service_healthy
+    networks:
+      - angebotsvergleich-net
+
+networks:
+  angebotsvergleich-net:
+    driver: bridge

@@ -1,0 +1,52 @@
+@import "tailwindcss";
+
+:root {
+  --background: 250 250 250;
+  --foreground: 15 23 42;
+  --card: 255 255 255;
+  --card-foreground: 15 23 42;
+  --primary: 124 58 237;
+  --primary-foreground: 255 255 255;
+  --muted: 241 245 249;
+  --muted-foreground: 100 116 139;
+  --border: 226 232 240;
+  --accent: 243 244 246;
+  --accent-foreground: 15 23 42;
+  --destructive: 220 38 38;
+  --destructive-foreground: 255 255 255;
+  --success: 22 163 74;
+  --warning: 234 88 12;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: 17 24 39;
+    --foreground: 248 250 252;
+    --card: 30 41 59;
+    --card-foreground: 248 250 252;
+    --primary: 167 139 250;
+    --primary-foreground: 17 24 39;
+    --muted: 30 41 59;
+    --muted-foreground: 148 163 184;
+    --border: 51 65 85;
+    --accent: 51 65 85;
+    --accent-foreground: 248 250 252;
+  }
+}
+
+body {
+  background: rgb(var(--background));
+  color: rgb(var(--foreground));
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.btn { @apply inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition; }
+.btn-primary { background: rgb(var(--primary)); color: rgb(var(--primary-foreground)); }
+.btn-primary:hover { opacity: 0.9; }
+.btn-ghost { @apply border; border-color: rgb(var(--border)); color: rgb(var(--foreground)); }
+.btn-ghost:hover { background: rgb(var(--accent)); }
+.btn-danger { background: rgb(var(--destructive)); color: rgb(var(--destructive-foreground)); }
+
+.card { @apply rounded-lg border p-4; background: rgb(var(--card)); border-color: rgb(var(--border)); }
+.input, .textarea, .select { @apply w-full rounded-md border px-3 py-2 text-sm; background: rgb(var(--background)); border-color: rgb(var(--border)); color: rgb(var(--foreground)); }
+.input:focus, .textarea:focus, .select:focus { outline: 2px solid rgb(var(--primary)); }

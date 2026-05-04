@@ -1,0 +1,131 @@
+// Konvention §11 Optimistic-Lock + §15 Stammdaten-Bezug
+// Persoenliche App: Comparisons gehoeren immer einem User (PERSONAL scope).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String        @id @default(cuid())
+  authentikSub      String        @unique @map("authentik_sub")
+  email             String        @unique
+  name              String        @default("")
+  isAdmin           Boolean       @default(false) @map("is_admin")
+  comparisons       Comparison[]
+  createdAt         DateTime      @default(now()) @map("created_at")
+  updatedAt         DateTime      @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+enum ComparisonStatus {
+  DRAFT       // User legt an, fuegt Angebote hinzu
+  PROCESSING  // Claude laeuft
+  DONE        // Ergebnis vorhanden
+  ERROR       // Claude-Fehler
+}
+
+model Comparison {
+  id              String           @id @default(cuid())
+  userId          String           @map("user_id")
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title           String           // Was wird verglichen, z.B. "Aluminium-Profile 2026 Q3"
+  customerName    String?          @map("customer_name")  // Stammdaten-Customer optional
+  projectRef      String?          @map("project_ref")    // Projekt-Externalref aus Stammdaten
+  backgroundInfo  String?          @map("background_info") @db.Text
+  customPrompt    String?          @map("custom_prompt") @db.Text  // User-Zusatzprompt
+
+  status          ComparisonStatus @default(DRAFT)
+  resultSummary   String?          @map("result_summary") @db.Text  // KI-Kurzfazit
+  resultJson      Json?            @map("result_json")               // Strukturierte KI-Antwort
+  winnerOfferId   String?          @map("winner_offer_id")           // FK auf Offer
+  errorMessage    String?          @map("error_message") @db.Text
+
+  // Claude API Audit
+  claudeModel     String?          @map("claude_model")
+  claudeInputTokens   Int?         @map("claude_input_tokens")
+  claudeOutputTokens  Int?         @map("claude_output_tokens")
+  claudeRunMs     Int?             @map("claude_run_ms")
+
+  offers          Offer[]
+  version         Int              @default(0)
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+
+  @@map("comparisons")
+  @@index([userId, createdAt])
+  @@index([status])
+}
+
+model Offer {
+  id                  String      @id @default(cuid())
+  comparisonId        String      @map("comparison_id")
+  comparison          Comparison  @relation(fields: [comparisonId], references: [id], onDelete: Cascade)
+
+  supplierName        String      @map("supplier_name")  // Lieferant (Customer-Name aus Stammdaten oder freier Text)
+  supplierExternalId  String?     @map("supplier_external_id")  // Stammdaten-Customer-ID falls verlinkt
+
+  // Original-Datei
+  originalFilename    String      @map("original_filename")
+  storageKey          String      @map("storage_key")  // Pfad in /data/app-uploads/...
+  mimeType            String      @map("mime_type")
+  fileSize            Int         @map("file_size")
+
+  // Extracted Content
+  extractedText       String?     @map("extracted_text") @db.Text  // OCR/PDF-Text
+  parsedAt            DateTime?   @map("parsed_at")
+
+  // KI-Auswertung pro Angebot
+  totalNet            Decimal?    @map("total_net") @db.Decimal(15, 2)
+  totalGross          Decimal?    @map("total_gross") @db.Decimal(15, 2)
+  currency            String?     @default("EUR")
+  deliveryDays        Int?        @map("delivery_days")
+  paymentTerms        String?     @map("payment_terms")
+  validityDate        DateTime?   @map("validity_date")
+  inkoterm            String?     // EXW, DDP, FCA, etc.
+  notes               String?     @db.Text
+
+  // KI-Score (0-100)
+  scorePrice          Int?        @map("score_price")
+  scoreDelivery       Int?        @map("score_delivery")
+  scoreQuality        Int?        @map("score_quality")
+  scoreService        Int?        @map("score_service")
+  scoreTotal          Int?        @map("score_total")
+  ranking             Int?        // 1=winner
+
+  positions           OfferPosition[]
+  createdAt           DateTime    @default(now()) @map("created_at")
+
+  @@map("offers")
+  @@index([comparisonId])
+}
+
+model OfferPosition {
+  id              String      @id @default(cuid())
+  offerId         String      @map("offer_id")
+  offer           Offer       @relation(fields: [offerId], references: [id], onDelete: Cascade)
+
+  positionNumber  Int?        @map("position_number")
+  description     String      @db.Text  // Original aus PDF
+  normalizedDesc  String?     @map("normalized_desc")  // KI-normalisierter Bezeichnung fuer Vergleich
+  category        String?     // KI-Kategorie z.B. "Material", "Bearbeitung", "Versand"
+
+  quantity        Decimal?    @db.Decimal(15, 4)
+  unit            String?     // Stk, m, kg, ...
+  pricePerUnit    Decimal?    @map("price_per_unit") @db.Decimal(15, 4)
+  totalPrice      Decimal?    @map("total_price") @db.Decimal(15, 2)
+
+  // Normalisierter Vergleichswert (z.B. immer in EUR pro Stk)
+  normalizedQty   Decimal?    @map("normalized_qty") @db.Decimal(15, 4)
+  normalizedUnit  String?     @map("normalized_unit")
+  normalizedPpu   Decimal?    @map("normalized_ppu") @db.Decimal(15, 4)
+
+  @@map("offer_positions")
+  @@index([offerId])
+}
