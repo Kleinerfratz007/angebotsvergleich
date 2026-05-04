@@ -1,4 +1,9 @@
 # syntax=docker/dockerfile:1.7
+# Slim-Variante: nutzt Next.js Standalone-Output ohne komplette node_modules.
+# pdf-parse + @anthropic-ai/sdk + react-pdf werden via serverExternalPackages
+# automatisch in .next/standalone/node_modules getraced.
+# Falls dynamische Requires fehlen: einzelne Pakete hier nachkopieren.
+
 FROM node:22-alpine AS deps
 WORKDIR /app
 RUN apk add --no-cache libc6-compat openssl
@@ -25,12 +30,14 @@ ENV HOSTNAME=0.0.0.0
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
+# Standalone hat eigenen Mini-server.js + Mini-node_modules (nur die Dependencies die der Server braucht)
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
-# Komplette node_modules damit react-pdf + alle dynamischen Requires laufen
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
+# Prisma-Engine landet in node_modules/.prisma/client/* — die wird vom Trace nicht erwischt
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
 
 USER nextjs
 EXPOSE 4110
