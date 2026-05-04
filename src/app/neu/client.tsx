@@ -4,6 +4,8 @@ import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Upload, X, Sparkles, FileText } from "lucide-react";
 import RfqStep, { type RfqData } from "./rfq-step";
+import ModelPicker from "./model-picker";
+import { type AiModelId, DEFAULT_MODEL, getModel } from "@/lib/ai-models";
 
 interface OfferDraft {
   id: string;
@@ -26,6 +28,7 @@ export default function NewComparisonClient({ geminiAvailable }: { geminiAvailab
   const [customPrompt, setCustomPrompt] = useState("");
   const [aiProvider, setAiProvider] = useState<"claude" | "gemini">("claude");
   const [rfqData, setRfqData] = useState<RfqData | null>(null);
+  const [aiModel, setAiModel] = useState<AiModelId>(DEFAULT_MODEL);
   const [offers, setOffers] = useState<OfferDraft[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -61,6 +64,7 @@ export default function NewComparisonClient({ geminiAvailable }: { geminiAvailab
       if (backgroundInfo) fd.append("backgroundInfo", backgroundInfo);
       if (customPrompt) fd.append("customPrompt", customPrompt);
       fd.append("aiProvider", aiProvider);
+      fd.append("aiModel", aiModel);
       if (rfqData) {
         fd.append("rfqScope", JSON.stringify(rfqData.scope));
         fd.append("rfqOriginalFilename", rfqData.filename);
@@ -119,9 +123,15 @@ export default function NewComparisonClient({ geminiAvailable }: { geminiAvailab
         </div>
       </div>
 
-      {/* KI-Modell — Gemini nur wenn Key gesetzt */}
       <div className="card space-y-3">
         <h2 className="font-semibold text-sm uppercase opacity-70">KI-Modell</h2>
+        <ModelPicker
+          value={aiModel}
+          onChange={setAiModel}
+          estCt={getModel(aiModel).typicalCostCt * Math.max(1, offers.length / 3)}
+        />
+        <details className="text-xs opacity-70">
+          <summary className="cursor-pointer">Erweitert: Provider waehlen (Claude / Gemini)</summary>
         {geminiAvailable ? (
           <div className="grid grid-cols-2 gap-2">
             <button
@@ -155,6 +165,7 @@ export default function NewComparisonClient({ geminiAvailable }: { geminiAvailab
             </div>
           </div>
         )}
+        </details>
       </div>
 
       <div className="card space-y-3">
