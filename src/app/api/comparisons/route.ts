@@ -33,6 +33,29 @@ export async function POST(req: NextRequest) {
   const aiProviderRaw = String(fd.get("aiProvider") || "claude");
   const aiProvider = aiProviderRaw === "gemini" ? "gemini" : "claude";
 
+  // Optional: RFQ-Scope (Step 0 — vom /rfq-extract endpoint vorab vorbereitet)
+  let rfqScope: object | null = null;
+  let rfqOriginalFilename: string | null = null;
+  let rfqMimeType: string | null = null;
+  let rfqFileSize: number | null = null;
+  let rfqExtractedText: string | null = null;
+  let rfqInputTokens: number | null = null;
+  let rfqOutputTokens: number | null = null;
+  let rfqExtractModel: string | null = null;
+
+  const rfqScopeRaw = String(fd.get("rfqScope") || "");
+  if (rfqScopeRaw) {
+    try { rfqScope = JSON.parse(rfqScopeRaw); }
+    catch { return NextResponse.json({ error: "rfqScope invalid JSON" }, { status: 400 }); }
+    rfqOriginalFilename = String(fd.get("rfqOriginalFilename") || "") || null;
+    rfqMimeType = String(fd.get("rfqMimeType") || "") || null;
+    rfqFileSize = Number(fd.get("rfqFileSize") || 0) || null;
+    rfqExtractedText = String(fd.get("rfqExtractedText") || "") || null;
+    rfqInputTokens = Number(fd.get("rfqInputTokens") || 0) || null;
+    rfqOutputTokens = Number(fd.get("rfqOutputTokens") || 0) || null;
+    rfqExtractModel = String(fd.get("rfqExtractModel") || "") || null;
+  }
+
   const comparison = await prisma.comparison.create({
     data: {
       userId: user.id,
@@ -43,6 +66,10 @@ export async function POST(req: NextRequest) {
       customPrompt: String(fd.get("customPrompt") || "") || null,
       aiProvider,
       status: "DRAFT",
+      rfqScope: rfqScope as object | undefined,
+      rfqOriginalFilename, rfqMimeType, rfqFileSize, rfqExtractedText,
+      rfqInputTokens, rfqOutputTokens, rfqExtractModel,
+      rfqExtractedAt: rfqScope ? new Date() : null,
     },
   });
 

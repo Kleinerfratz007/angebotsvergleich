@@ -44,7 +44,7 @@ export async function runAnalysis(comparisonId: string): Promise<void> {
     }));
 
     providerName = (c.aiProvider as AiProvider) || DEFAULT_PROVIDER;
-    const aiResult = await runAiComparison(providerName, offerInputs, c.backgroundInfo || "", c.customPrompt || "");
+    const aiResult = await runAiComparison(providerName, offerInputs, c.backgroundInfo || "", c.customPrompt || "", c.rfqScope as object | null);
     const result = aiResult.result;
     modelName = aiResult.meta.model;
     inputTokens = aiResult.meta.inputTokens;

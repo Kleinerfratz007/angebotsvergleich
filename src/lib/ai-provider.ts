@@ -47,6 +47,7 @@ export async function runAiComparison(
   offers: OfferInput[],
   backgroundInfo: string,
   customPrompt: string,
+  rfqScope?: object | null,
 ): Promise<AiRunResult> {
   if (provider === "gemini") {
     if (!isGeminiConfigured()) {

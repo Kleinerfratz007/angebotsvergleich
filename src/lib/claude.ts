@@ -262,6 +262,7 @@ export async function runClaudeComparison(
   offers: OfferInput[],
   backgroundInfo: string,
   customPrompt: string,
+  rfqScope?: object | null,
 ): Promise<{ result: ClaudeComparisonResult; meta: ClaudeMeta }> {
   const apiKey = await getSetting("ANTHROPIC_API_KEY");
   if (!apiKey) throw new Error("ANTHROPIC_API_KEY nicht konfiguriert (in Einstellungen oder env setzen)");
@@ -271,7 +272,7 @@ export async function runClaudeComparison(
   const MODEL = modelOverride || MODEL_DEFAULT;
   const client = new Anthropic({ apiKey });
 
-  const userMessage = buildUserMessage(offers, backgroundInfo, customPrompt);
+  const userMessage = buildUserMessage(offers, backgroundInfo, customPrompt, rfqScope);
 
   const start = Date.now();
   const response = await client.messages.create({
@@ -310,7 +311,7 @@ export async function runClaudeComparison(
   };
 }
 
-function buildUserMessage(offers: OfferInput[], backgroundInfo: string, customPrompt: string): string {
+function buildUserMessage(offers: OfferInput[], backgroundInfo: string, customPrompt: string, rfqScope?: object | null): string {
   const lines: string[] = [];
   lines.push("# Aufgabe");
   lines.push("Vergleiche die folgenden Angebote nach der Methodik aus dem System-Prompt und liefere die JSON-Antwort.");
@@ -325,6 +326,16 @@ function buildUserMessage(offers: OfferInput[], backgroundInfo: string, customPr
   if (customPrompt.trim()) {
     lines.push("# Spezielle Hinweise vom Einkaeufer");
     lines.push(customPrompt.trim());
+    lines.push("");
+  }
+
+  if (rfqScope) {
+    lines.push("# Anfrage-Scope (BENCHMARK fuer den Vergleich)");
+    lines.push("Der Einkaeufer hat seine eigene Angebotsanfrage hochgeladen. Hier der extrahierte Scope.");
+    lines.push("Bewerte jedes Angebot AUCH danach, wie gut es diesen Scope abdeckt (coveragePct).");
+    lines.push("```json");
+    lines.push(JSON.stringify(rfqScope, null, 2));
+    lines.push("```");
     lines.push("");
   }
 

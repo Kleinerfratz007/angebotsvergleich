@@ -74,6 +74,19 @@ model Comparison {
   followups       ComparisonFollowup[]
   usage           AiUsage[]
   version         Int              @default(0)
+
+  // RFQ / Anfrage-Daten (Konvention §15.6 — 2026-05-04, optional Step 0)
+  rfqStorageKey       String?  @map("rfq_storage_key")
+  rfqOriginalFilename String?  @map("rfq_original_filename")
+  rfqMimeType         String?  @map("rfq_mime_type")
+  rfqFileSize         Int?     @map("rfq_file_size")
+  rfqExtractedText    String?  @map("rfq_extracted_text") @db.Text
+  rfqScope            Json?    @map("rfq_scope")
+  rfqExtractedAt      DateTime? @map("rfq_extracted_at")
+  rfqExtractModel     String?  @map("rfq_extract_model")
+  rfqInputTokens      Int?     @map("rfq_input_tokens")
+  rfqOutputTokens     Int?     @map("rfq_output_tokens")
+
   createdAt       DateTime         @default(now()) @map("created_at")
   updatedAt       DateTime         @updatedAt @map("updated_at")
 
@@ -225,3 +238,10 @@ model ComparisonFollowup {
   @@map("comparison_followups")
   @@index([comparisonId, createdAt])
 }
+
+// ===== RFQ / Anfrage-Upload (Konvention §15.6 — 2026-05-04) =====
+// Optionaler Step 0: User laedt seine eigene Angebotsanfrage hoch.
+// KI extrahiert den SCOPE (was wird angefragt, Anforderungen, Rahmenbedingungen)
+// und nutzt das als Benchmark fuer den Angebotsvergleich.
+//
+// Speichert PDF-Pfad + extrahiertes Text + Scope-JSON.

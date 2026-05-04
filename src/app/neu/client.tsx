@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Upload, X, Sparkles, FileText } from "lucide-react";
+import RfqStep, { type RfqData } from "./rfq-step";
 
 interface OfferDraft {
   id: string;
@@ -24,6 +25,7 @@ export default function NewComparisonClient({ geminiAvailable }: { geminiAvailab
   const [backgroundInfo, setBackgroundInfo] = useState("");
   const [customPrompt, setCustomPrompt] = useState("");
   const [aiProvider, setAiProvider] = useState<"claude" | "gemini">("claude");
+  const [rfqData, setRfqData] = useState<RfqData | null>(null);
   const [offers, setOffers] = useState<OfferDraft[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -59,6 +61,15 @@ export default function NewComparisonClient({ geminiAvailable }: { geminiAvailab
       if (backgroundInfo) fd.append("backgroundInfo", backgroundInfo);
       if (customPrompt) fd.append("customPrompt", customPrompt);
       fd.append("aiProvider", aiProvider);
+      if (rfqData) {
+        fd.append("rfqScope", JSON.stringify(rfqData.scope));
+        fd.append("rfqOriginalFilename", rfqData.filename);
+        fd.append("rfqMimeType", rfqData.mimeType);
+        fd.append("rfqFileSize", String(rfqData.fileSize));
+        fd.append("rfqInputTokens", String(rfqData.meta.inputTokens));
+        fd.append("rfqOutputTokens", String(rfqData.meta.outputTokens));
+        fd.append("rfqExtractModel", rfqData.meta.model);
+      }
       for (const o of offers) {
         fd.append("supplierName", o.supplierName);
         fd.append("file", o.file, o.file.name);
@@ -87,6 +98,8 @@ export default function NewComparisonClient({ geminiAvailable }: { geminiAvailab
           ❌ {error}
         </div>
       )}
+
+      <RfqStep value={rfqData} onChange={setRfqData} />
 
       <div className="card space-y-3">
         <h2 className="font-semibold text-sm uppercase opacity-70">Stammdaten</h2>
