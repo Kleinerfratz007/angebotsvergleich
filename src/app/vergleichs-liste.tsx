@@ -1,10 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Trophy, Sparkles, AlertCircle, Archive, ArchiveRestore, Trash2, FileText } from "lucide-react";
 import { RichText } from "@/lib/rich-text";
+
+/**
+ * Konvention §24.13 — Hydration-safe Date Rendering.
+ * Server-Container hat oft keine de-DE Locale -> toLocaleString liefert
+ * abweichende Strings ggue. Browser. Fix: render erst nach mount.
+ */
+function DateText({ iso, opts }: { iso: string; opts?: Intl.DateTimeFormatOptions }) {
+  const [text, setText] = useState("");
+  useEffect(() => {
+    setText(new Date(iso).toLocaleString("de-DE", opts));
+  }, [iso, opts]);
+  return <>{text}</>;
+}
+
 
 export interface VergleichItem {
   id: string;
@@ -91,8 +105,8 @@ export default function VergleichsListe({ items, mode }: Props) {
                 <div className="text-xs opacity-60 mt-1 flex flex-wrap gap-2">
                   {c.customerName && <span>{c.customerName}</span>}
                   <span>· {c.offerCount} Angebote</span>
-                  <span>· {new Date(c.createdAt).toLocaleString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
-                  {c.archivedAt && <span className="badge" style={{ background: "rgb(229 231 235)", color: "rgb(75 85 99)" }}><Archive size={10} className="inline" /> archiviert {new Date(c.archivedAt).toLocaleDateString("de-DE")}</span>}
+                  <span>· <DateText iso={c.createdAt} opts={{ day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }} /></span>
+                  {c.archivedAt && <span className="badge" style={{ background: "rgb(229 231 235)", color: "rgb(75 85 99)" }}><Archive size={10} className="inline" /> archiviert <DateText iso={c.archivedAt} /></span>}
                 </div>
                 {c.resultSummary && (
                   <p className="text-sm mt-2 opacity-80 line-clamp-2"><RichText text={c.resultSummary} /></p>
