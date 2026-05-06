@@ -139,6 +139,8 @@ model Offer {
 
   @@map("offers")
   @@index([comparisonId])
+  // §7 Optimistic-Lock
+  version    Int      @default(0)
 }
 
 model OfferPosition {
