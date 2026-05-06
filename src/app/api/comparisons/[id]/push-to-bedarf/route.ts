@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { withIdempotency } from "@/lib/idempotency";
 import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/session";
 import { readOfferFile } from "@/lib/storage";
@@ -27,7 +28,7 @@ const SERVICE_TOKEN = process.env.BEDARFSANMELDUNG_INBOX_TOKEN || "";
  *  - Empfaenger-Inbox validiert Body + speichert als pending
  *  - User in Bedarfsanmeldung-App muss accepten
  */
-export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+async function _POST_handler(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { user } = await getSession();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { id } = await params;
@@ -125,3 +126,5 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     clearTimeout(timer);
   }
 }
+
+export const POST = withIdempotency(_POST_handler, { appName: "angebotsvergleich" });

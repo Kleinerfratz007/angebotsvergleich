@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { withIdempotency } from "@/lib/idempotency";
 import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/session";
 import { deleteOfferFile } from "@/lib/storage";
@@ -11,7 +12,7 @@ export const dynamic = "force-dynamic";
  *
  * (Andere Felder erlauben wir hier nicht — fuer das ist die UI-Form vorgesehen)
  */
-export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+async function _PATCH_handler(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { user } = await getSession();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { id } = await params;
@@ -39,7 +40,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
  * Nur erlaubt fuer eigene Comparisons; AiUsage bleibt fuer Audit
  * mit comparisonId=null (SetNull-Cascade laut Schema).
  */
-export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+async function _DELETE_handler(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { user } = await getSession();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { id } = await params;
@@ -61,3 +62,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
 
   return NextResponse.json({ ok: true, deleted: id, filesDeleted: c.offers.length });
 }
+
+export const PATCH = withIdempotency(_PATCH_handler, { appName: "angebotsvergleich" });
+
+export const DELETE = withIdempotency(_DELETE_handler, { appName: "angebotsvergleich" });

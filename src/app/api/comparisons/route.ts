@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { withIdempotency } from "@/lib/idempotency";
 import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/session";
 import { saveOfferFile } from "@/lib/storage";
@@ -15,7 +16,7 @@ export const maxDuration = 120;
  *  - run = "1" → KI sofort triggern
  *  - file (multiple) + supplierName (multiple, gleicher Index)
  */
-export async function POST(req: NextRequest) {
+async function _POST_handler(req: NextRequest) {
   const { user } = await getSession();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -116,3 +117,5 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({ id: comparison.id, status: comparison.status }, { status: 201 });
 }
+
+export const POST = withIdempotency(_POST_handler, { appName: "angebotsvergleich" });

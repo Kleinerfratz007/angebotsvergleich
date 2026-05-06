@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { withIdempotency } from "@/lib/idempotency";
 import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/session";
 import { encrypt, isEncryptionConfigured, maskKey, decrypt } from "@/lib/encryption";
@@ -52,7 +53,7 @@ export async function GET() {
 }
 
 /** POST /api/settings — Admin only. Speichert verschluesselt. */
-export async function POST(req: NextRequest) {
+async function _POST_handler(req: NextRequest) {
   const { user } = await getSession();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   if (!user.isAdmin) return NextResponse.json({ error: "Admin only" }, { status: 403 });
@@ -82,3 +83,5 @@ export async function POST(req: NextRequest) {
   invalidateSetting(body.key);
   return NextResponse.json({ ok: true });
 }
+
+export const POST = withIdempotency(_POST_handler, { appName: "angebotsvergleich" });

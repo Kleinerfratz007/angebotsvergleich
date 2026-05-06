@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { withIdempotency } from "@/lib/idempotency";
 import { getSession } from "@/lib/session";
 import { extractText } from "@/lib/pdf-extract";
 import { extractRfqScope } from "@/lib/rfq-extract";
@@ -14,7 +15,7 @@ export const maxDuration = 60;
  * Extrahiert Text + ruft KI-Scope-Extraktion auf. Liefert die Scope-Vorschau
  * zurueck — KEIN DB-Save (passiert erst beim Comparison-POST mit rfqScope).
  */
-export async function POST(req: NextRequest) {
+async function _POST_handler(req: NextRequest) {
   const { user } = await getSession();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -61,3 +62,5 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: (e as Error).message }, { status: 500 });
   }
 }
+
+export const POST = withIdempotency(_POST_handler, { appName: "angebotsvergleich" });

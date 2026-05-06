@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { withIdempotency } from "@/lib/idempotency";
 import { getSession } from "@/lib/session";
 import { getSetting } from "@/lib/settings-store";
 
@@ -8,7 +9,7 @@ export const dynamic = "force-dynamic";
  * POST /api/settings/test — testet einen Provider mit minimal-Request.
  * Body: { provider: "claude" | "gemini" }
  */
-export async function POST(req: NextRequest) {
+async function _POST_handler(req: NextRequest) {
   const { user } = await getSession();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   if (!user.isAdmin) return NextResponse.json({ error: "Admin only" }, { status: 403 });
@@ -46,3 +47,5 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: (e as Error).message });
   }
 }
+
+export const POST = withIdempotency(_POST_handler, { appName: "angebotsvergleich" });

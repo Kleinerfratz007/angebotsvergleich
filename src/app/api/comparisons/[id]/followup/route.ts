@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { withIdempotency } from "@/lib/idempotency";
 import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/session";
 import { runClaudeFollowup, type ClaudeComparisonResult } from "@/lib/claude";
@@ -17,7 +18,7 @@ export const maxDuration = 180;
  * wird Comparison.resultJson auch ueberschrieben (Original im Followup
  * archiviert).
  */
-export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+async function _POST_handler(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { user } = await getSession();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { id } = await params;
@@ -114,3 +115,5 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: (e as Error).message }, { status: 500 });
   }
 }
+
+export const POST = withIdempotency(_POST_handler, { appName: "angebotsvergleich" });

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { withIdempotency } from "@/lib/idempotency";
 import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/session";
 import { runAnalysis } from "../../run-helper";
@@ -14,7 +15,7 @@ export const maxDuration = 180;
  * UI kann sofort die KI-Progress-Animation rendern; runAnalysis läuft 30-90s
  * im Hintergrund und setzt am Ende DONE/ERROR.
  */
-export async function POST(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+async function _POST_handler(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { user } = await getSession();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { id } = await params;
@@ -35,3 +36,5 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
   // Sofort 202 Accepted — UI rendert KiProgress-Animation
   return NextResponse.json({ ok: true, accepted: true, status: "PROCESSING" }, { status: 202 });
 }
+
+export const POST = withIdempotency(_POST_handler, { appName: "angebotsvergleich" });
