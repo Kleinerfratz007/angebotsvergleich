@@ -17,19 +17,32 @@ async function _PATCH_handler(req: NextRequest, { params }: { params: Promise<{ 
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { id } = await params;
 
-  const body = await req.json().catch(() => null) as { archived?: boolean } | null;
+  const body = await req.json().catch(() => null) as { archived?: boolean; version?: number } | null;
   if (!body || typeof body.archived !== "boolean") {
     return NextResponse.json({ error: "body.archived (boolean) erforderlich" }, { status: 400 });
   }
 
-  const c = await prisma.comparison.findUnique({ where: { id }, select: { userId: true } });
+  const c = await prisma.comparison.findUnique({ where: { id }, select: { userId: true, version: true } });
   if (!c || c.userId !== user.id) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const updated = await prisma.comparison.update({
-    where: { id },
-    data: { archivedAt: body.archived ? new Date() : null },
-    select: { id: true, archivedAt: true },
-  });
+  let updated;
+  if (typeof body.version === "number") {
+    const result = await prisma.comparison.updateMany({
+      where: { id, version: body.version },
+      data: { archivedAt: body.archived ? new Date() : null, version: { increment: 1 } },
+    });
+    if (result.count === 0) {
+      return NextResponse.json({ error: "Version conflict", currentVersion: c.version, expectedVersion: body.version }, { status: 409 });
+    }
+    updated = await prisma.comparison.findUnique({ where: { id }, select: { id: true, archivedAt: true } });
+    if (!updated) return NextResponse.json({ error: "Not Found" }, { status: 500 });
+  } else {
+    updated = await prisma.comparison.update({
+      where: { id },
+      data: { archivedAt: body.archived ? new Date() : null },
+      select: { id: true, archivedAt: true },
+    });
+  }
 
   return NextResponse.json({ ok: true, archived: updated.archivedAt !== null, archivedAt: updated.archivedAt });
 }
