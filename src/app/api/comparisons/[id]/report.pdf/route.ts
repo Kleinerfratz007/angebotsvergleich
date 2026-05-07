@@ -6,6 +6,7 @@ import React from "react";
 import { ComparisonReport } from "@/lib/pdf-report";
 import type { ClaudeComparisonResult } from "@/lib/claude";
 import { computeCost } from "@/lib/pricing";
+import { getServerFxRate } from "@/lib/pricing-fx.server";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -35,7 +36,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   const inputTokens = c.claudeInputTokens || 0;
   const outputTokens = c.claudeOutputTokens || 0;
   const modelOnly = (c.claudeModel || "").includes(":") ? (c.claudeModel as string).split(":")[1] : (c.claudeModel || "claude-opus-4-7");
-  const cost = computeCost({ model: modelOnly, inputTokens, outputTokens });
+  const cost = computeCost({ model: modelOnly, inputTokens, outputTokens, fxUsdEur: getServerFxRate() });
 
   const buffer = await renderToBuffer(
     React.createElement(ComparisonReport, {

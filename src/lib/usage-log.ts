@@ -5,6 +5,7 @@
  */
 import { prisma } from "./db";
 import { computeCost } from "./pricing";
+import { getServerFxRate } from "./pricing-fx.server";
 
 export interface LogUsageInput {
   userId: string;
@@ -37,6 +38,7 @@ export async function logUsage(input: LogUsageInput): Promise<LogUsageResult> {
     outputTokens: input.outputTokens,
     cacheReadTokens: input.cacheReadTokens,
     cacheCreateTokens: input.cacheCreateTokens,
+    fxUsdEur: getServerFxRate(),
   });
   try {
     const row = await prisma.aiUsage.create({
